@@ -1,7 +1,4 @@
 #include "game.hpp"
-#include <iostream>
-using std::cout;
-using std::endl;
 
 
 //		INITIALIZE ALL GAMES TO SOLVED STATE
@@ -26,3 +23,29 @@ void game::display(void) {
 	}
 	cout << endl << endl;
 };
+
+vector<position> game::getValidMoves(void) {
+	vector<position> moves = {};
+	if(-1 < emptySpace+UP && emptySpace+UP < size) {
+		moves.push_back(UP);
+	}
+	if(-1 < emptySpace+RIGHT && emptySpace+RIGHT < size) {
+		moves.push_back(RIGHT);
+	}
+	if(-1 < emptySpace+DOWN && emptySpace+DOWN < size) {
+		moves.push_back(DOWN);
+	}
+	if(-1 < emptySpace+LEFT && emptySpace+LEFT < size) {
+		moves.push_back(LEFT);
+	}
+	return moves;
+};
+
+void game::applyMove(position move) {
+
+}
+
+vector<game> game::getChildren(void) {
+	vector<game> children = {};
+	return children;
+}
