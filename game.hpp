@@ -1,8 +1,14 @@
-#ifndef GAME_HPP
-#define GAME_HPP
-
 #include <vector>
 using std::vector;
+#include <string>
+using std::string;
+#include <math.h>
+
+
+
+
+#ifndef GAME_HPP
+#define GAME_HPP
 
 #define matrix vector<vector<int>>
 
@@ -28,13 +34,16 @@ const position LEFT = {0,-1};
 class game {
 	private:
 		int size = 0;
-		matrix board = {{}};
+		matrix board = {};
 		position emptySpace = {0,0};
+		vector<int> id;
 	public:
-		game(int size);
 		friend bool operator==(const game& a, const game& b) {
 			return (a.size == b.size) && (a.board == b.board);
 		}
+
+		game(int size);
+		void display(void);
 };
 
 #endif
