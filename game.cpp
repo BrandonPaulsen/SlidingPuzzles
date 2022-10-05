@@ -42,10 +42,23 @@ vector<position> game::getValidMoves(void) {
 };
 
 void game::applyMove(position move) {
+	position newEmptySpace = emptySpace+move;
+	board.at(emptySpace.row).at(emptySpace.col) = board.at(newEmptySpace.row).at(newEmptySpace.col);
+	emptySpace = newEmptySpace;
+	board.at(emptySpace.row).at(emptySpace.col) = 0;
+}
 
+game game::getChild(position move) {
+	game child = *this;
+	child.applyMove(move);
+	return child;
 }
 
 vector<game> game::getChildren(void) {
 	vector<game> children = {};
+	vector<position> moves = getValidMoves();
+	for(position move:moves) {
+		children.push_back(getChild(move));
+	}
 	return children;
 }
