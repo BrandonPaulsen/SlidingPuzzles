@@ -2,8 +2,10 @@
 using std::vector;
 
 
+//		MATRIX DEFINITION FOR STORING BOARD STATE
 #define matrix vector<vector<int>>
 
+//		POSITION STRUCT FOR KEEPING TRACK OF AND ADDING POSITIONS
 struct position {
 	int row = 0;
 	int col = 0;
@@ -22,6 +24,17 @@ const position UP = {-1,0};
 const position RIGHT = {0,1};
 const position DOWN = {1,0};
 const position LEFT = {0,-1};
+
+struct game{
+	int size = 0;
+	matrix board = {{}};
+	position emptySpace = {0,0};
+	friend bool operator==(const game& a, const game& b) {
+		return (a.size == b.size) && (a.board == b.board);
+	}
+};
+
+
 
 int main() {
 
