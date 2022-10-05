@@ -3,6 +3,9 @@ using std::vector;
 #include <string>
 using std::string;
 #include <math.h>
+#include <iostream>
+using std::cout;
+using std::endl;
 
 
 
@@ -17,6 +20,12 @@ struct position {
 	int col = 0;
 	friend bool operator==(const position& a, const position& b) {
 		return (a.row == b.row) && (a.col == b.col);
+	}
+	friend bool operator<(int r, const position& p) {
+		return (r < p.row) && (r < p.col);
+	}
+	friend bool operator<(const position& p, int r) {
+		return (p.row < r) && (p.col < r);
 	}
 	position operator+(const position& d) {
 		position p;
@@ -44,6 +53,9 @@ class game {
 
 		game(int size);
 		void display(void);
+		vector<position> getValidMoves(void);
+		void applyMove(position move);
+		vector<game> getChildren(void);
 };
 
 #endif
