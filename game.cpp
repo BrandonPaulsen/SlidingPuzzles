@@ -1,4 +1,8 @@
 #include "game.hpp"
+#include <cmath>
+using std::abs;
+#include <cstdlib>
+using std::rand;
 
 
 //		INITIALIZE ALL GAMES TO SOLVED STATE
@@ -77,16 +81,53 @@ position game::find(int tile) {
 	return notFound;
 }
 
+string game::getHash(void) {
+	string hash = "";
+	for(int row = 0; row < size; row++) {
+		for(int col = 0; col < size; col++) {
+			hash+= board.at(row).at(col);
+			hash+= "*";
+		}
+	}
+	return hash;
+}
+
+void game::randomize(void) {
+	for(int r = 0; r < 4*size*size; r++) {
+		vector<position> moves = getValidMoves();
+		applyMove(moves.at(rand()%moves.size()));
+	}
+}
+
 int game::uniformCost(game& compGame) {
 	return 0;
 }
 
 int game::misplacedTile(game& compGame) {
 	int misplacedTileCount = 0;
-	return 0;
+	for(int row = 0; row < size; row++) {
+		for(int col = 0; col < size; col++) {
+			if(board.at(row).at(col) != 0) {
+				if(board.at(row).at(col) != compGame.board.at(row).at(col)) {
+					misplacedTileCount++;
+				}
+			}
+		}
+	}
+	return misplacedTileCount;
 }
 
 int game::manhattanDistance(game& compGame) {
 	int totalManhattanDistance = 0;
-	return 0;
+	for(int row = 0; row < size; row++) {
+		for(int col = 0; col < size; col++) {
+			if(board.at(row).at(col) != 0) {
+				position found = compGame.find(board.at(row).at(col));
+				int drow = abs(row-found.row);
+				int dcol = abs(col-found.col);
+				totalManhattanDistance+= drow+dcol;
+			}
+		}
+	}
+	return totalManhattanDistance;
 }
