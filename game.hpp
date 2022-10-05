@@ -45,7 +45,6 @@ class game {
 		int size = 0;
 		matrix board = {};
 		position emptySpace = {0,0};
-		vector<int> id;
 	public:
 		friend bool operator==(const game& a, const game& b) {
 			return (a.size == b.size) && (a.board == b.board);
@@ -55,6 +54,7 @@ class game {
 		void display(void);
 		vector<position> getValidMoves(void);
 		void applyMove(position move);
+		game getChild(position move);
 		vector<game> getChildren(void);
 };
 
