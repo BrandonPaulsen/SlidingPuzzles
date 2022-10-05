@@ -67,6 +67,8 @@ class game {
 		game getChild(position& move);
 		vector<game> getChildren(void);
 		position find(int tile);
+		string getHash(void);
+		void randomize(void);
 		int uniformCost(game& compGame);
 		int misplacedTile(game& compGame);
 		int manhattanDistance(game& compGame);
