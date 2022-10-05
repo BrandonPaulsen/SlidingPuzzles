@@ -41,16 +41,17 @@ vector<position> game::getValidMoves(void) {
 	return moves;
 };
 
-void game::applyMove(position move) {
+void game::applyMove(position& move) {
 	position newEmptySpace = emptySpace+move;
 	board.at(emptySpace.row).at(emptySpace.col) = board.at(newEmptySpace.row).at(newEmptySpace.col);
 	emptySpace = newEmptySpace;
 	board.at(emptySpace.row).at(emptySpace.col) = 0;
 }
 
-game game::getChild(position move) {
+game game::getChild(position& move) {
 	game child = *this;
 	child.applyMove(move);
+	child.depth++;
 	return child;
 }
 
@@ -61,4 +62,31 @@ vector<game> game::getChildren(void) {
 		children.push_back(getChild(move));
 	}
 	return children;
+}
+
+position game::find(int tile) {
+	for(int row = 0; row < size; row++) {
+		for(int col = 0; col < size; col++) {
+			if(board.at(row).at(col) == tile) {
+				position found = {row,col};
+				return found;
+			}
+		}
+	}
+	position notFound = {-1,-1};
+	return notFound;
+}
+
+int game::uniformCost(game& compGame) {
+	return 0;
+}
+
+int game::misplacedTile(game& compGame) {
+	int misplacedTileCount = 0;
+	return 0;
+}
+
+int game::manhattanDistance(game& compGame) {
+	int totalManhattanDistance = 0;
+	return 0;
 }
