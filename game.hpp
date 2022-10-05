@@ -6,6 +6,9 @@ using std::string;
 #include <iostream>
 using std::cout;
 using std::endl;
+#include <queue>
+using std::priority_queue;
+
 
 
 
@@ -43,6 +46,9 @@ const position LEFT = {0,-1};
 class game {
 	private:
 		int size = 0;
+		int depth = 0;
+		int heuristic = 0;
+		int priority = 0;
 		matrix board = {};
 		position emptySpace = {0,0};
 	public:
@@ -50,12 +56,20 @@ class game {
 			return (a.size == b.size) && (a.board == b.board);
 		}
 
+		friend bool operator<(const game& a, const game& b) {
+			return a.priority < b.priority;
+		}
+
 		game(int size);
 		void display(void);
 		vector<position> getValidMoves(void);
-		void applyMove(position move);
-		game getChild(position move);
+		void applyMove(position& move);
+		game getChild(position& move);
 		vector<game> getChildren(void);
+		position find(int tile);
+		int uniformCost(game& compGame);
+		int misplacedTile(game& compGame);
+		int manhattanDistance(game& compGame);
 };
 
 #endif
