@@ -1,19 +1,29 @@
 #include "game.hpp"
 
-
 int main() {
 	srand(time(NULL));
 	priority_queue<game> Q;
+	unordered_set<string> states;
 	game solved = game(3);
-	solved.display();
-	vector<game> children = solved.getChildren();
-	for(game child:children) {
-		child.display();
+	states.insert(solved.getID());
+
+	vector<game> currentLevel = {};
+	vector<game> nextLevel = {solved};
+	int depth = -1;
+
+	while(nextLevel.size() != 0) {
+		currentLevel = nextLevel;
+		nextLevel = {};
+		depth++;
+		cout << "NUMBER OF STATES AT DEPTH " << depth << ": " << currentLevel.size() << endl;
+		for(game parent:currentLevel) {
+			vector<game> children = parent.getChildren();
+			for(game child:children) {
+				if(states.find(child.getID()) == states.end()) {
+					nextLevel.push_back(child);
+					states.insert(child.getID());
+				}
+			}
+		}
 	}
-	// game random = game(3);
-	// random.randomize();
-	// random.display();
-	// cout << "UNIFORM COST:\t\t" << random.uniformCost(solved) << endl;
-	// cout << "MISPLACED TILE:\t\t" << random.misplacedTile(solved) << endl;
-	// cout << "MANHATTAN DISTANCE:\t" << random.manhattanDistance(solved) << endl;
 }
