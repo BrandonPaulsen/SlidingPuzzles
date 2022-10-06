@@ -116,6 +116,7 @@ void game::applyMove(position& move) {
 //	RETURN NEW GAME THAT CORRESPONDS TO NEW STATE AFTER MOVE
 game game::getChild(position& move) {
 	game child = *this;
+	child.parent = this;
 	child.applyMove(move);
 	child.depth++;
 	return child;
@@ -149,6 +150,11 @@ int game::uniformCostHeuristic(game& compGame) {
 	return 0;
 }
 
+void game::applyUniformCostHeuristic(game& compGame) {
+	heuristic = uniformCostHeuristic(compGame);
+	priority = depth+heuristic;
+}
+
 //	MISPLACED TILE HEURISTIC COUNTS THE NUMBER OF TILES IN THE WRONG PLACE
 //		DOES NOT COUNT 0 TO BE OUT OF PLACE NO MATTER WHAT
 int game::misplacedTileHeuristic(game& compGame) {
@@ -163,6 +169,11 @@ int game::misplacedTileHeuristic(game& compGame) {
 		}
 	}
 	return misplacedTileCount;
+}
+
+void game::applyMisplacedTileHeuristic(game& compGame) {
+	heuristic = misplacedTileHeuristic(compGame);
+	priority = depth+heuristic;
 }
 
 //	MANHATTAN DISTANCE HEURISTIC CALCULATES THE MANHATTAN (TAXICAB) DISTANCE BETWEEN EACH CHILD IN BOTH GAMES
@@ -181,4 +192,9 @@ int game::manhattanDistanceHeuristic(game& compGame) {
 		}
 	}
 	return totalManhattanDistance;
+}
+
+void game::applyManhattanDistanceHeuristic(game& compGame) {
+	heuristic = manhattanDistanceHeuristic(compGame);
+	priority = depth+heuristic;
 }

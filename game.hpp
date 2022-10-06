@@ -55,6 +55,7 @@ class game {
 		int priority = 0;
 		matrix board = {};
 		position emptySpace = {0,0};
+		game* parent;
 	public:
 		friend bool operator==(const game& a, const game& b) {
 			return (a.size == b.size) && (a.board == b.board);
@@ -89,8 +90,11 @@ class game {
 				HEURISTIC FUNCTIONS
 		*/
 		int uniformCostHeuristic(game& compGame);
+		void applyUniformCostHeuristic(game& compGame);
 		int misplacedTileHeuristic(game& compGame);
+		void applyMisplacedTileHeuristic(game& compGame);
 		int manhattanDistanceHeuristic(game& compGame);
+		void applyManhattanDistanceHeuristic(game& compGame);
 
 };
 
