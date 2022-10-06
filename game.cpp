@@ -21,7 +21,9 @@ game::game(int size) {
 		UTILITY FUNCTIONS
 */
 
-void game::display(void) { 
+
+//	PRINT THE GAME STATE TO TERMINAL
+void game::display(void) {
 	for(int row = 0; row < board.size(); row++) {
 		for(int col = 0; col < board.size(); col++) {
 			cout << board.at(row).at(col) << "\t";
@@ -31,6 +33,7 @@ void game::display(void) {
 	cout << endl << endl;
 }
 
+//	FIND A TILE IN A GAME STATE, RETURN POSITION
 position game::find(int tile) {
 	for(int row = 0; row < size; row++) {
 		for(int col = 0; col < size; col++) {
@@ -44,10 +47,15 @@ position game::find(int tile) {
 	return notFound;
 }
 
+
+//	GETTER FUNCTION
 matrix game::getBoard(void) {
 	return board;
 }
 
+
+//	TAKE USER GAME STATE INPUT
+//		IF THERE IS TIME, CHECK TO SEE IF GAME STATE IS VALID
 void game::enterUserState(void) {
 	int input;
 	for(int row = 0; row < size; row++) {
@@ -59,6 +67,8 @@ void game::enterUserState(void) {
 	}
 }
 
+
+//	RETURN STRING REPRESENTING BOARD STATE FOR USE IN UNORDERED SET TO TRACK VISITED STATES
 string game::getID(void) {
 	string ID = "";
 	for(int row = 0; row < size; row++) {
@@ -75,6 +85,8 @@ string game::getID(void) {
 	MOVEMENT FUNCTIONS	
 */
 
+
+//	CHECK BOARD POSITION TO GENERATE VALID MOVES AND RETURN VECTOR OF VALID MOVES
 vector<position> game::getValidMoves(void) {
 	vector<position> moves = {};
 	if(-1 < emptySpace+UP && emptySpace+UP < size) {
@@ -92,6 +104,7 @@ vector<position> game::getValidMoves(void) {
 	return moves;
 };
 
+//	MUTATE CURRENT GAME BY APPLYING CURRENT MOVE
 void game::applyMove(position& move) {
 	position newEmptySpace = emptySpace+move;
 	board.at(emptySpace.row).at(emptySpace.col) = board.at(newEmptySpace.row).at(newEmptySpace.col);
@@ -99,6 +112,8 @@ void game::applyMove(position& move) {
 	board.at(emptySpace.row).at(emptySpace.col) = 0;
 }
 
+
+//	RETURN NEW GAME THAT CORRESPONDS TO NEW STATE AFTER MOVE
 game game::getChild(position& move) {
 	game child = *this;
 	child.applyMove(move);
@@ -106,6 +121,7 @@ game game::getChild(position& move) {
 	return child;
 }
 
+//	RETURN A VECTOR OF ALL VALID CHILDREN ACCESSIBLE FROM CURRENT STATE
 vector<game> game::getChildren(void) {
 	vector<game> children = {};
 	vector<position> moves = getValidMoves();
@@ -115,8 +131,10 @@ vector<game> game::getChildren(void) {
 	return children;
 }
 
+//	RANDOMIZE BOARD BY MAKING RANDOM MOVES
+//		USEFUL FOR TESTING HEURISTIC FUNCTIONS
 void game::randomize(void) {
-	for(int r = 0; r < 4*size*size; r++) {
+	for(int r = 0; r < 20*size*size; r++) {
 		vector<position> moves = getValidMoves();
 		applyMove(moves.at(rand()%moves.size()));
 	}
@@ -126,10 +144,13 @@ void game::randomize(void) {
 		HEURISTIC FUNCTIONS
 */
 
+//	UNIFORM COST HEURISTIC RETURNS 0 AND CORRESPONDS TO DFS
 int game::uniformCostHeuristic(game& compGame) {
 	return 0;
 }
 
+//	MISPLACED TILE HEURISTIC COUNTS THE NUMBER OF TILES IN THE WRONG PLACE
+//		DOES NOT COUNT 0 TO BE OUT OF PLACE NO MATTER WHAT
 int game::misplacedTileHeuristic(game& compGame) {
 	int misplacedTileCount = 0;
 	for(int row = 0; row < size; row++) {
@@ -144,6 +165,9 @@ int game::misplacedTileHeuristic(game& compGame) {
 	return misplacedTileCount;
 }
 
+//	MANHATTAN DISTANCE HEURISTIC CALCULATES THE MANHATTAN (TAXICAB) DISTANCE BETWEEN EACH CHILD IN BOTH GAMES
+//		ALWAYS AT LEAST AS GOOD IF NOT BETTER THAN THE MISPLACED TILE HEURISTIC
+//		MANHATTAN DISTANCE = ABS(A.TILE.X - B.TILE.X) + ABS(A.TILE.Y - B.TILE.Y)
 int game::manhattanDistanceHeuristic(game& compGame) {
 	int totalManhattanDistance = 0;
 	for(int row = 0; row < size; row++) {
