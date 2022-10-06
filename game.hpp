@@ -2,12 +2,16 @@
 using std::vector;
 #include <string>
 using std::string;
+using std::to_string;
 #include <math.h>
 #include <iostream>
 using std::cout;
+using std::cin;
 using std::endl;
 #include <queue>
 using std::priority_queue;
+#include <unordered_set>
+using std::unordered_set;
 
 
 
@@ -60,11 +64,17 @@ class game {
 			return a.priority < b.priority;
 		}
 
+		friend bool operator>(const game& a, const game& b) {
+			return a.priority > b.priority;
+		}
+
 		game(int size);
 
 		void display(void);
 		position find(int tile);
 		matrix getBoard(void);
+		void enterUserState(void);
+		string getID(void);
 
 		vector<position> getValidMoves(void);
 		void applyMove(position& move);
@@ -72,9 +82,10 @@ class game {
 		vector<game> getChildren(void);
 		void randomize(void);
 
-		int uniformCost(game& compGame);
-		int misplacedTile(game& compGame);
-		int manhattanDistance(game& compGame);
+		int uniformCostHeuristic(game& compGame);
+		int misplacedTileHeuristic(game& compGame);
+		int manhattanDistanceHeuristic(game& compGame);
+
 };
 
 #endif
