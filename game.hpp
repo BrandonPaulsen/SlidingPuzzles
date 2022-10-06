@@ -69,19 +69,25 @@ class game {
 		}
 
 		game(int size);
-
+		/*
+				UTILITY FUNCTIONS
+		*/
 		void display(void);
 		position find(int tile);
 		matrix getBoard(void);
 		void enterUserState(void);
 		string getID(void);
-
+		/*
+			MOVEMENT FUNCTIONS	
+		*/
 		vector<position> getValidMoves(void);
 		void applyMove(position& move);
 		game getChild(position& move);
 		vector<game> getChildren(void);
 		void randomize(void);
-
+		/*
+				HEURISTIC FUNCTIONS
+		*/
 		int uniformCostHeuristic(game& compGame);
 		int misplacedTileHeuristic(game& compGame);
 		int manhattanDistanceHeuristic(game& compGame);
