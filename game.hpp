@@ -61,14 +61,17 @@ class game {
 		}
 
 		game(int size);
+
 		void display(void);
+		position find(int tile);
+		matrix getBoard(void);
+
 		vector<position> getValidMoves(void);
 		void applyMove(position& move);
 		game getChild(position& move);
 		vector<game> getChildren(void);
-		position find(int tile);
-		string getHash(void);
 		void randomize(void);
+
 		int uniformCost(game& compGame);
 		int misplacedTile(game& compGame);
 		int manhattanDistance(game& compGame);
