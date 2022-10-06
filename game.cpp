@@ -4,7 +4,6 @@ using std::abs;
 #include <cstdlib>
 using std::rand;
 
-
 //		INITIALIZE ALL GAMES TO SOLVED STATE
 game::game(int size) {
 	this->size = size;
@@ -18,6 +17,10 @@ game::game(int size) {
 	board.at(emptySpace.row).at(emptySpace.col) = 0;
 }
 
+/*
+		UTILITY FUNCTIONS
+*/
+
 void game::display(void) { 
 	for(int row = 0; row < board.size(); row++) {
 		for(int col = 0; col < board.size(); col++) {
@@ -26,7 +29,28 @@ void game::display(void) {
 		cout << endl << endl;
 	}
 	cout << endl << endl;
-};
+}
+
+position game::find(int tile) {
+	for(int row = 0; row < size; row++) {
+		for(int col = 0; col < size; col++) {
+			if(board.at(row).at(col) == tile) {
+				position found = {row,col};
+				return found;
+			}
+		}
+	}
+	position notFound = {-1,-1};
+	return notFound;
+}
+
+matrix game::getBoard(void) {
+	return board;
+}
+
+/*
+	MOVEMENT FUNCTIONS	
+*/
 
 vector<position> game::getValidMoves(void) {
 	vector<position> moves = {};
@@ -68,36 +92,16 @@ vector<game> game::getChildren(void) {
 	return children;
 }
 
-position game::find(int tile) {
-	for(int row = 0; row < size; row++) {
-		for(int col = 0; col < size; col++) {
-			if(board.at(row).at(col) == tile) {
-				position found = {row,col};
-				return found;
-			}
-		}
-	}
-	position notFound = {-1,-1};
-	return notFound;
-}
-
-string game::getHash(void) {
-	string hash = "";
-	for(int row = 0; row < size; row++) {
-		for(int col = 0; col < size; col++) {
-			hash+= board.at(row).at(col);
-			hash+= "*";
-		}
-	}
-	return hash;
-}
-
 void game::randomize(void) {
 	for(int r = 0; r < 4*size*size; r++) {
 		vector<position> moves = getValidMoves();
 		applyMove(moves.at(rand()%moves.size()));
 	}
 }
+
+/*
+		HEURISTIC FUNCTIONS
+*/
 
 int game::uniformCost(game& compGame) {
 	return 0;
