@@ -48,6 +48,29 @@ matrix game::getBoard(void) {
 	return board;
 }
 
+void game::enterUserState(void) {
+	int input;
+	for(int row = 0; row < size; row++) {
+		for(int col = 0; col < size; col++) {
+			cout << "ENTER TILE AT POSITION " << row << ", " << col << endl;
+			cin >> input;
+			board.at(row).at(col) = input;
+		}
+	}
+}
+
+string game::getID(void) {
+	string ID = "";
+	for(int row = 0; row < size; row++) {
+		for(int col = 0; col < size; col++) {
+			ID+= to_string(board.at(row).at(col));
+			ID+= "*";
+		}
+	}
+	return ID;
+}
+
+
 /*
 	MOVEMENT FUNCTIONS	
 */
@@ -103,11 +126,11 @@ void game::randomize(void) {
 		HEURISTIC FUNCTIONS
 */
 
-int game::uniformCost(game& compGame) {
+int game::uniformCostHeuristic(game& compGame) {
 	return 0;
 }
 
-int game::misplacedTile(game& compGame) {
+int game::misplacedTileHeuristic(game& compGame) {
 	int misplacedTileCount = 0;
 	for(int row = 0; row < size; row++) {
 		for(int col = 0; col < size; col++) {
@@ -121,7 +144,7 @@ int game::misplacedTile(game& compGame) {
 	return misplacedTileCount;
 }
 
-int game::manhattanDistance(game& compGame) {
+int game::manhattanDistanceHeuristic(game& compGame) {
 	int totalManhattanDistance = 0;
 	for(int row = 0; row < size; row++) {
 		for(int col = 0; col < size; col++) {
