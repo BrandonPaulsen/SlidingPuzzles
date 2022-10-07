@@ -51,7 +51,7 @@ class game {
 	private:
 		int size = 0;
 		int depth = 0;
-		int heuristic = 0;
+		int heuristicValue = 0;
 		int priority = 0;
 		matrix board = {};
 		position emptySpace = {0,0};
@@ -61,15 +61,9 @@ class game {
 			return (a.size == b.size) && (a.board == b.board);
 		}
 
-		friend bool operator<(const game& a, const game& b) {
-			return a.priority < b.priority;
-		}
-
-		friend bool operator>(const game& a, const game& b) {
-			return a.priority > b.priority;
-		}
-
 		game(int size);
+		game(const game& c);
+		game& operator=(const game& c);
 		/*
 				UTILITY FUNCTIONS
 		*/
@@ -78,24 +72,25 @@ class game {
 		matrix getBoard(void);
 		void enterUserState(void);
 		string getID(void);
+		void setParent(game* p);
+		game* getParent(void);
+		int getDepth(void);
+		int getPriority(void);
 		/*
 			MOVEMENT FUNCTIONS	
 		*/
 		vector<position> getValidMoves(void);
 		void applyMove(position& move);
-		game getChild(position& move);
-		vector<game> getChildren(void);
+		game* getChild(position& move);
+		vector<game*> getChildren(void);
 		void randomize(void);
 		/*
 				HEURISTIC FUNCTIONS
 		*/
-		int uniformCostHeuristic(game& compGame);
-		void applyUniformCostHeuristic(game& compGame);
-		int misplacedTileHeuristic(game& compGame);
-		void applyMisplacedTileHeuristic(game& compGame);
-		int manhattanDistanceHeuristic(game& compGame);
-		void applyManhattanDistanceHeuristic(game& compGame);
-
+		int uniformCostHeuristic(game* goalState);
+		int misplacedTileHeuristic(game* goalState);
+		int manhattanDistanceHeuristic(game* goalState);
+		void updatePriority(game* goalState, string heuristic);
 };
 
 #endif
