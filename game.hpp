@@ -69,13 +69,65 @@ class game {
 		*/
 		void display(void);
 		position find(int tile);
-		matrix getBoard(void);
 		void enterUserState(void);
-		string getID(void);
-		void setParent(game* p);
-		game* getParent(void);
-		int getDepth(void);
-		int getPriority(void);
+		/*
+			GETTERS
+		*/
+		int getSize(void) {
+			return size;
+		}
+		int getDepth(void) {
+			return depth;
+		}
+		int getHeuristicValue(void) {
+			return heuristicValue;
+		}
+		int getPriority(void) {
+			return priority;
+		}
+		matrix getBoard(void) {
+			return board;
+		}
+		position getEmptySpace(void) {
+			return emptySpace;
+		}
+		game* getParent(void) {
+			return parent;
+		}
+		string getID(void) {
+				string ID = "";
+				for(int row = 0; row < size; row++) {
+					for(int col = 0; col < size; col++) {
+						ID+= to_string(board.at(row).at(col));
+						ID+= "*";
+					}
+				}
+				return ID;
+		}
+		/*
+			SETTERS
+		*/
+		void setSize(int s) {
+			size = s;
+		}
+		void setDepth(int d) {
+			depth = d;
+		}
+		void setHeuristicValue(int h) {
+			heuristicValue = h;
+		}
+		void setPriority(int p) {
+			priority = p;
+		}
+		void setBoard(matrix b) {
+			board = b;
+		}
+		void setEmptySpace(position es) {
+			emptySpace = es;
+		}
+		void setParent(game* p) {
+			parent = p;
+		}
 		/*
 			MOVEMENT FUNCTIONS	
 		*/
