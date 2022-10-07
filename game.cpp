@@ -62,12 +62,6 @@ position game::find(int tile) {
 }
 
 
-//	GETTER FUNCTION
-matrix game::getBoard(void) {
-	return board;
-}
-
-
 //	TAKE USER GAME STATE INPUT
 //		IF THERE IS TIME, CHECK TO SEE IF GAME STATE IS VALID
 void game::enterUserState(void) {
@@ -80,39 +74,6 @@ void game::enterUserState(void) {
 		}
 	}
 	emptySpace = find(0);
-}
-
-
-//	RETURN STRING REPRESENTING BOARD STATE FOR USE IN UNORDERED SET TO TRACK VISITED STATES
-string game::getID(void) {
-	string ID = "";
-	for(int row = 0; row < size; row++) {
-		for(int col = 0; col < size; col++) {
-			ID+= to_string(board.at(row).at(col));
-			ID+= "*";
-		}
-	}
-	return ID;
-}
-
-
-//	SET PARENT POINTER VALUE
-void game::setParent(game* p) {
-	parent = p;
-}
-
-
-//	RETURN GAME POINTER TO PARENT
-game* game::getParent(void) {
-	return parent;
-}
-
-int game::getDepth(void) {
-	return depth;
-}
-
-int game::getPriority(void) {
-	return priority;
 }
 
 /*
