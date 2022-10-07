@@ -1,6 +1,8 @@
 #include "game.hpp"
 
-void bruteForce(game* initialState, game* goalState) {
+game* bruteForce(game* initialState, game* goalState) {
+	game* path = new game(initialState->getSize());
+
 	unordered_set<string> visited;
 	visited.insert(goalState->getID());
 
@@ -27,15 +29,53 @@ void bruteForce(game* initialState, game* goalState) {
 	for(vector<game*> level:levels) {
 		for(game* state:level) {
 			if(*state == *initialState) {
-				depth = state->getDepth();
-				while(state != nullptr) {
-					state->display();
-					state = state->getParent();
+				path = state;
+				break;
+			}
+		}
+	}
+	return path;
+}
+
+game* heuristicSearch(game* initialState, game* goalState, string& heuristic) {
+	game* path = new game(initialState->getSize());
+
+	auto compare = [](game* a, game* b) {
+		return a->getPriority() > b->getPriority();
+	};
+
+	unordered_set<string> visited;
+	visited.insert(goalState->getID());
+	priority_queue<game*, vector<game*>, decltype(compare)> Q(compare);
+	Q.push(goalState);
+
+	while(!Q.empty()) {
+		game* currState = Q.top();
+		Q.pop();
+		if(*currState == *initialState) {
+			path = currState;
+		} else {
+			vector<game*> children = currState->getChildren();
+			for(game* child:children) {
+				if(visited.find(child->getID()) == visited.end()) {
+					child->updatePriority(initialState, heuristic);
+					visited.insert(child->getID());
+					Q.push(child);
 				}
 			}
 		}
 	}
-	cout << "PATH FOUND AT DEPTH " << depth << endl;
+	return path;
+}
+
+void displayPath(game* path) {
+	while(path != nullptr) {
+		path->display();
+	}
+}
+
+game* islandSearch(game* initialState, game* goalState, string& heuristic) {
+	return initialState;
 }
 
 int main() {
@@ -45,6 +85,7 @@ int main() {
 	cin >> size;
 	game* initialState = new game(size);
 	game* goalState = new game(size);
+	goalState->setParent(nullptr);
 
 
 	cout << "Would you like to pick a puzzle state (1) or use a random one (2)?" << endl;
@@ -80,41 +121,237 @@ int main() {
 		return 0;
 	}
 
-	auto compare = [](game* a, game* b) {
-		return a->getPriority() > b->getPriority();
-	};
-
-	unordered_set<string> visited;
-	visited.insert(goalState->getID());
-	priority_queue<game*, vector<game*>, decltype(compare)> Q(compare);
-	Q.push(goalState);
-
-	while(!Q.empty()) {
-		game* currState = Q.top();
-		Q.pop();
-		if(*currState == *initialState) {
-			game* path = currState;
-			while(path != goalState) {
-				path->display();
-				path = path->getParent();
-			}
-			cout << "FOUND SOLUTION AT DEPTH " << currState->getDepth() << endl;
-			return 0;
-		} else {
-			vector<game*> children = currState->getChildren();
-			for(game* child:children) {
-				if(visited.find(child->getID()) == visited.end()) {
-					child->updatePriority(initialState, heuristic);
-					visited.insert(child->getID());
-					Q.push(child);
-				}
-			}
-		}
+	cout << "Would you like to use island based search? (0 for no, 1 for yes)" << endl;
+	int islandInt = 0;
+	if(islandInt == 0) {
+		displayPath(heuristicSearch(initialState, goalState, heuristic));
+	} else if(islandInt == 1) {
+		displayPath(islandSearch(initialState, goalState, heuristic));
 	}
-	cout << "FOUND NO SOLUTION" << endl;
+
+
+
+	// string heuristic = "manhattanDistance";
+
+	// game* bruteForcePath = bruteForce(initialState, goalState);
+	// cout << "BRUTE FORCE PATH DEPTH: " << bruteForcePath->getDepth() << endl;
+	// cout << "MANHATTAN DISTANCE PATH DEPTH: " << manhattanDistancePath->getDepth() << endl;
+	// while(bruteForcePath != nullptr && manhattanDistancePath != nullptr) {
+	// 	if(*bruteForcePath == *manhattanDistancePath) {
+	// 		bruteForcePath->display();
+	// 	} else {
+	// 		cout << "PATHS DIVERGE AT DEPTH " << bruteForcePath->getDepth() << endl;
+	// 		cout << "BRUTE FORCE PATH: " << endl;
+	// 		bruteForcePath->display();
+	// 		cout << "MANHATTAN DISTANCE PATH: " << endl;
+	// 		manhattanDistancePath->display();
+	// 		break;
+	// 	}
+	// 	bruteForcePath = bruteForcePath->getParent();
+	// 	manhattanDistancePath = manhattanDistancePath->getParent();
+	// }
+
 }
 
 
-//	5 3 6
-//	2 1 8
-//	0 4 7
+//072461358
+
+/*
+	0	7	2	
+
+	4	6	1		
+
+	3	5	8		
+	
+	
+
+	7	0	2		
+
+	4	6	1		
+
+	3	5	8		
+	
+	
+
+	7	6	2		
+
+	4	0	1		
+
+	3	5	8		
+	
+	
+
+	7	6	2		
+
+	0	4	1		
+
+	3	5	8		
+	
+	
+
+	7	6	2		
+
+	3	4	1		
+
+	0	5	8		
+	
+	
+
+	7	6	2		
+
+	3	4	1		
+
+	5	0	8		
+	
+	
+
+	7	6	2		
+
+	3	0	1		
+
+	5	4	8		
+	
+	
+
+	7	6	2		
+
+	3	1	0		
+
+	5	4	8		
+	
+	
+
+	7	6	0		
+
+	3	1	2		
+
+	5	4	8		
+	
+	
+
+	7	0	6		
+
+	3	1	2		
+
+	5	4	8		
+	
+	
+
+	7	1	6		
+
+	3	0	2		
+
+	5	4	8		
+	
+	
+
+	7	1	6		
+
+	0	3	2		
+
+	5	4	8		
+	
+	
+
+	0	1	6		
+
+	7	3	2		
+
+	5	4	8		
+	
+	
+
+	1	0	6		
+
+	7	3	2		
+
+	5	4	8		
+	
+	
+
+	1	3	6		
+
+	7	0	2		
+
+	5	4	8		
+	
+	
+
+	1	3	6		
+
+	7	4	2		
+
+	5	0	8		
+	
+	
+
+	1	3	6		
+
+	7	4	2		
+
+	0	5	8		
+	
+	
+
+	1	3	6		
+
+	0	4	2		
+
+	7	5	8		
+	
+	
+
+	1	3	6		
+
+	4	0	2		
+
+	7	5	8		
+	
+	
+
+	1	3	6		
+
+	4	2	0		
+
+	7	5	8		
+	
+	
+
+	1	3	0		
+
+	4	2	6		
+
+	7	5	8		
+	
+	
+
+	1	0	3		
+
+	4	2	6		
+
+	7	5	8		
+	
+	
+
+	1	2	3		
+
+	4	0	6		
+
+	7	5	8		
+	
+	
+
+	1	2	3		
+
+	4	5	6		
+
+	7	0	8		
+	
+	
+
+	1	2	3		
+
+	4	5	6		
+
+	7	8	0
+*/
