@@ -1,51 +1,72 @@
 #include "game.hpp"
 
 int main() {
+	srand(time(NULL));
 	cout << "What size game would you like to solve?" << endl;
 	int size = 0;
 	cin >> size;
-	game initialState = game(size);
-	game finalState = game(size);
+	game* initialState = new game(size);
+	game* goalState = new game(size);
+	goalState->setParent(nullptr);
 
 
 	cout << "Would you like to pick a puzzle state (1) or use a random one (2)?" << endl;
 	int stateInt = 0;
 	cin >> stateInt;
 	if(stateInt == 1) {
-		initialState.enterUserState();
+		initialState->enterUserState();
 	} else if(stateInt == 2) {
-		initialState.randomize();
+		initialState->randomize();
 	}
 
+	cout << "INITIAL STATE:" << endl;
+	initialState->display();
+	cout << "GOAL STATE:" << endl;
+	goalState->display();
+
 	cout << "Would you like to use Uniform Cost Heuristic (1), Misplaced Tile Heuristic (2), or Manhattan Distance Heuristic (3)?" << endl;
+	int heuristicInt = 0;
+	string heuristic = "";
+	cin>> heuristicInt;
+	if(heuristicInt == 0) {
+		heuristic = "uniformCost";
+	} else if(heuristicInt == 1)  {
+		heuristic = "misplacedTile";
+	} else if(heuristicInt == 2) {
+		heuristic = "manhattanDistance";
+	}
 
+	unordered_set<string> visited;
+	visited.insert(goalState->getID());
 
+	vector<vector<game*>> levels = {};
+	levels.push_back({goalState});
 
+	while(levels.back().size() != 0) {
+		vector<game*> currLevel = levels.back();
+		vector<game*> nextLevel = {};
+		for(game* parent:currLevel) {
+			vector<game*> children = parent->getChildren();
+			for(game* child:children) {
+				if(visited.find(child->getID()) == visited.end()) {
+					nextLevel.push_back(child);
+					visited.insert(child->getID());
+				}
+			}
+		}
+		levels.push_back(nextLevel);
+	}
+	levels.pop_back();
 
-
-	// srand(time(NULL));
-	// priority_queue<game> Q;
-	// unordered_set<string> states;
-	// game solved = game(3);
-	// states.insert(solved.getID());
-
-	// vector<game> currentLevel = {};
-	// vector<game> nextLevel = {solved};
-	// int depth = -1;
-
-	// while(nextLevel.size() != 0) {
-	// 	currentLevel = nextLevel;
-	// 	nextLevel = {};
-	// 	depth++;
-	// 	cout << "NUMBER OF STATES AT DEPTH " << depth << ": " << currentLevel.size() << endl;
-	// 	for(game parent:currentLevel) {
-	// 		vector<game> children = parent.getChildren();
-	// 		for(game child:children) {
-	// 			if(states.find(child.getID()) == states.end()) {
-	// 				nextLevel.push_back(child);
-	// 				states.insert(child.getID());
-	// 			}
-	// 		}
-	// 	}
-	// }
+	for(vector<game*> level:levels) {
+		for(game* state:level) {
+			if(*state == *initialState) {
+				cout << "PATH FOUND AT DEPTH " << state->getDepth() << endl;
+				while(state != nullptr) {
+					state->display();
+					state = state->getParent();
+				}
+			}
+		}
+	}
 }
