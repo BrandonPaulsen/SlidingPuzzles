@@ -23,10 +23,11 @@ void bruteForce(game* initialState, game* goalState) {
 	}
 	levels.pop_back();
 
+	int depth = 0;
 	for(vector<game*> level:levels) {
 		for(game* state:level) {
 			if(*state == *initialState) {
-				cout << "PATH FOUND AT DEPTH " << state->getDepth() << endl;
+				depth = state->getDepth();
 				while(state != nullptr) {
 					state->display();
 					state = state->getParent();
@@ -34,6 +35,7 @@ void bruteForce(game* initialState, game* goalState) {
 			}
 		}
 	}
+	cout << "PATH FOUND AT DEPTH " << depth << endl;
 }
 
 int main() {
@@ -56,6 +58,10 @@ int main() {
 
 	cout << "INITIAL STATE:" << endl;
 	initialState->display();
+	cout << "INITIAL STATE HEURISTICS: " << endl;
+	cout << "\tUNIFORM COST: " << 0 << endl;
+	cout << "\tMISPLACED TILE: " << initialState->misplacedTileHeuristic(goalState) << endl;
+	cout << "\tMANHATTAN DISTANCE: " << initialState->manhattanDistanceHeuristic(goalState) << endl;
 	cout << "GOAL STATE:" << endl;
 	goalState->display();
 
