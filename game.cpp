@@ -17,6 +17,20 @@ game::game(int size) {
 	board.at(emptySpace.row).at(emptySpace.col) = 0;
 }
 
+game::game(const game& c) {
+	size = c.size;
+	depth = c.depth;
+	heuristicValue = c.heuristicValue;
+	priority = c.priority;
+	board = c.board;
+	emptySpace = c.emptySpace;
+	parent = c.parent;
+}
+
+game& game::operator=(const game& c) {
+	return *this;
+}
+
 /*
 		UTILITY FUNCTIONS
 */
@@ -65,6 +79,7 @@ void game::enterUserState(void) {
 			board.at(row).at(col) = input;
 		}
 	}
+	emptySpace = find(0);
 }
 
 
@@ -80,6 +95,25 @@ string game::getID(void) {
 	return ID;
 }
 
+
+//	SET PARENT POINTER VALUE
+void game::setParent(game* p) {
+	parent = p;
+}
+
+
+//	RETURN GAME POINTER TO PARENT
+game* game::getParent(void) {
+	return parent;
+}
+
+int game::getDepth(void) {
+	return depth;
+}
+
+int game::getPriority(void) {
+	return priority;
+}
 
 /*
 	MOVEMENT FUNCTIONS	
@@ -114,17 +148,20 @@ void game::applyMove(position& move) {
 
 
 //	RETURN NEW GAME THAT CORRESPONDS TO NEW STATE AFTER MOVE
-game game::getChild(position& move) {
-	game child = *this;
-	child.parent = this;
-	child.applyMove(move);
-	child.depth++;
+game* game::getChild(position& move) {
+	game* child = new game(size);
+	child->size = size;
+	child->depth = depth+1;
+	child->board = board;
+	child->emptySpace = emptySpace;
+	child->parent = this;
+	child->applyMove(move);
 	return child;
 }
 
 //	RETURN A VECTOR OF ALL VALID CHILDREN ACCESSIBLE FROM CURRENT STATE
-vector<game> game::getChildren(void) {
-	vector<game> children = {};
+vector<game*> game::getChildren(void) {
+	vector<game*> children = {};
 	vector<position> moves = getValidMoves();
 	for(position move:moves) {
 		children.push_back(getChild(move));
@@ -146,23 +183,18 @@ void game::randomize(void) {
 */
 
 //	UNIFORM COST HEURISTIC RETURNS 0 AND CORRESPONDS TO DFS
-int game::uniformCostHeuristic(game& compGame) {
+int game::uniformCostHeuristic(game* goalState) {
 	return 0;
-}
-
-void game::applyUniformCostHeuristic(game& compGame) {
-	heuristic = uniformCostHeuristic(compGame);
-	priority = depth+heuristic;
 }
 
 //	MISPLACED TILE HEURISTIC COUNTS THE NUMBER OF TILES IN THE WRONG PLACE
 //		DOES NOT COUNT 0 TO BE OUT OF PLACE NO MATTER WHAT
-int game::misplacedTileHeuristic(game& compGame) {
+int game::misplacedTileHeuristic(game* goalState) {
 	int misplacedTileCount = 0;
 	for(int row = 0; row < size; row++) {
 		for(int col = 0; col < size; col++) {
 			if(board.at(row).at(col) != 0) {
-				if(board.at(row).at(col) != compGame.board.at(row).at(col)) {
+				if(board.at(row).at(col) != goalState->board.at(row).at(col)) {
 					misplacedTileCount++;
 				}
 			}
@@ -171,20 +203,15 @@ int game::misplacedTileHeuristic(game& compGame) {
 	return misplacedTileCount;
 }
 
-void game::applyMisplacedTileHeuristic(game& compGame) {
-	heuristic = misplacedTileHeuristic(compGame);
-	priority = depth+heuristic;
-}
-
 //	MANHATTAN DISTANCE HEURISTIC CALCULATES THE MANHATTAN (TAXICAB) DISTANCE BETWEEN EACH CHILD IN BOTH GAMES
 //		ALWAYS AT LEAST AS GOOD IF NOT BETTER THAN THE MISPLACED TILE HEURISTIC
 //		MANHATTAN DISTANCE = ABS(A.TILE.X - B.TILE.X) + ABS(A.TILE.Y - B.TILE.Y)
-int game::manhattanDistanceHeuristic(game& compGame) {
+int game::manhattanDistanceHeuristic(game* goalState) {
 	int totalManhattanDistance = 0;
 	for(int row = 0; row < size; row++) {
 		for(int col = 0; col < size; col++) {
 			if(board.at(row).at(col) != 0) {
-				position found = compGame.find(board.at(row).at(col));
+				position found = goalState->find(board.at(row).at(col));
 				int drow = abs(row-found.row);
 				int dcol = abs(col-found.col);
 				totalManhattanDistance+= drow+dcol;
@@ -194,7 +221,14 @@ int game::manhattanDistanceHeuristic(game& compGame) {
 	return totalManhattanDistance;
 }
 
-void game::applyManhattanDistanceHeuristic(game& compGame) {
-	heuristic = manhattanDistanceHeuristic(compGame);
-	priority = depth+heuristic;
+//	UPDATE THE HEURISTIC VALUE AND PRIORITY BASED ON DESIRED HEURISTIC
+void game::updatePriority(game* goalState, string heuristic) {
+	if(heuristic == "uniformCost") {
+		heuristicValue = uniformCostHeuristic(goalState);
+	} else if(heuristic == "misplacedTile") {
+		heuristicValue = misplacedTileHeuristic(goalState);
+	} else if(heuristic == "manhattanDistance") {
+		heuristicValue = manhattanDistanceHeuristic(goalState);
+	}
+	priority = depth+heuristicValue;
 }
