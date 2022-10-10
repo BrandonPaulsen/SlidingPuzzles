@@ -45,6 +45,8 @@ void game::display(void) {
 		cout << endl << endl;
 	}
 	cout << endl << endl;
+	cout << "PRIORITY: " << priority << endl;
+	cout << endl << endl;
 }
 
 //	FIND A TILE IN A GAME STATE, RETURN POSITION
@@ -74,6 +76,40 @@ void game::enterUserState(void) {
 		}
 	}
 	emptySpace = find(0);
+}
+
+
+//	INITIALIZE OUTPUT FILE OFSTREAM IN ORDER TO PRINT GRAPH TO FILE AND VISUALIZE
+void game::graphPath(const string& fileName) {
+	ofstream outputFile;
+	outputFile.open(fileName);
+	if(!outputFile.is_open()) {
+		cout << "ERROR OPENING OUTPUT FILE" << endl;
+		return;
+	}
+	outputFile << "digraph G {" << endl;
+	graphPath(outputFile);
+	outputFile << "}";
+	outputFile.close();
+	string imageFileName = fileName.substr(0,fileName.find("."))+".jpg";
+	string command = "dot -Tjpg " + fileName + " -o " + imageFileName;
+	system(command.c_str());
+}
+
+
+//	ACTUALLY RECURSIVELY PRINT GRAPH DATA TO FILE
+void game::graphPath(ofstream& outputFile) {
+	string color;
+	if(visited) {
+		color = "red";
+	} else {
+		color = "blue";
+	}
+	outputFile << "\"" << getID() << "\" [color = " << color << ", style = filled, label = \"" <<  getID() << "\"];" << endl;
+	for(game* child:children) {
+		child->graphPath(outputFile);
+		outputFile << "\"" << getID() << "\" -> " << "\"" << child->getID() << "\";" << endl;
+	}
 }
 
 /*
@@ -120,20 +156,10 @@ game* game::getChild(position& move) {
 	return child;
 }
 
-//	RETURN A VECTOR OF ALL VALID CHILDREN ACCESSIBLE FROM CURRENT STATE
-vector<game*> game::getChildren(void) {
-	vector<game*> children = {};
-	vector<position> moves = getValidMoves();
-	for(position move:moves) {
-		children.push_back(getChild(move));
-	}
-	return children;
-}
-
 //	RANDOMIZE BOARD BY MAKING RANDOM MOVES
 //		USEFUL FOR TESTING HEURISTIC FUNCTIONS
 void game::randomize(void) {
-	for(int r = 0; r < 20*size*size; r++) {
+	for(int r = 0; r < (10+rand()%50)*size*size; r++) {
 		vector<position> moves = getValidMoves();
 		applyMove(moves.at(rand()%moves.size()));
 	}
@@ -171,11 +197,13 @@ int game::manhattanDistanceHeuristic(game* goalState) {
 	int totalManhattanDistance = 0;
 	for(int row = 0; row < size; row++) {
 		for(int col = 0; col < size; col++) {
-			if(board.at(row).at(col) != 0) {
-				position found = goalState->find(board.at(row).at(col));
+			int tile = board.at(row).at(col);
+			if(tile != 0) {
+				position found = goalState->find(tile);
 				int drow = abs(row-found.row);
 				int dcol = abs(col-found.col);
-				totalManhattanDistance+= drow+dcol;
+				totalManhattanDistance+= drow;
+				totalManhattanDistance+= dcol;
 			}
 		}
 	}
