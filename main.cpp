@@ -13,6 +13,7 @@ game* bruteForce(game* initialState, game* goalState) {
 		vector<game*> currLevel = levels.back();
 		vector<game*> nextLevel = {};
 		for(game* parent:currLevel) {
+			parent->setChildren();
 			vector<game*> children = parent->getChildren();
 			for(game* child:children) {
 				if(visited.find(child->getID()) == visited.end()) {
@@ -54,7 +55,9 @@ game* heuristicSearch(game* initialState, game* goalState, string& heuristic) {
 		Q.pop();
 		if(*currState == *initialState) {
 			path = currState;
+			break;
 		} else {
+			currState->setChildren();
 			vector<game*> children = currState->getChildren();
 			for(game* child:children) {
 				if(visited.find(child->getID()) == visited.end()) {
@@ -65,18 +68,18 @@ game* heuristicSearch(game* initialState, game* goalState, string& heuristic) {
 			}
 		}
 	}
+	cout << "VISITED " << visited.size() << " NODES" << endl;
 	return path;
 }
 
 void displayPath(game* path) {
-	while(path != nullptr) {
+	while(path->getParent() != nullptr) {
 		path->display();
+		path = path->getParent();
 	}
+	path->display();
 }
 
-game* islandSearch(game* initialState, game* goalState, string& heuristic) {
-	return initialState;
-}
 
 int main() {
 	srand(time(NULL));
@@ -121,14 +124,9 @@ int main() {
 		return 0;
 	}
 
-	cout << "Would you like to use island based search? (0 for no, 1 for yes)" << endl;
-	int islandInt = 0;
-	if(islandInt == 0) {
-		displayPath(heuristicSearch(initialState, goalState, heuristic));
-	} else if(islandInt == 1) {
-		displayPath(islandSearch(initialState, goalState, heuristic));
-	}
-
+	game* path = heuristicSearch(initialState, goalState, heuristic);
+	displayPath(path);
+	cout << "SOLUTION DEPTH: " << path->getDepth() << endl;
 
 
 	// string heuristic = "manhattanDistance";
@@ -157,201 +155,34 @@ int main() {
 //072461358
 
 /*
-	0	7	2	
+STATES FOR WHICH MISPLACED TILE AND MANHATTAN DISTANCE DIVERGE:
+	0	7	2
 
-	4	6	1		
+	4	6	1
 
-	3	5	8		
-	
-	
+	3	5	8
 
-	7	0	2		
-
-	4	6	1		
-
-	3	5	8		
-	
 	
 
-	7	6	2		
+	1	8	6
 
-	4	0	1		
+	3	2	5
 
-	3	5	8		
-	
-	
+	4	7	0
 
-	7	6	2		
 
-	0	4	1		
 
-	3	5	8		
-	
-	
+	6	7	5	
 
-	7	6	2		
+	1	8	3
 
-	3	4	1		
+	0	2	4
 
-	0	5	8		
-	
-	
 
-	7	6	2		
 
-	3	4	1		
+	0	3	7
 
-	5	0	8		
-	
-	
+	5	2	6
 
-	7	6	2		
-
-	3	0	1		
-
-	5	4	8		
-	
-	
-
-	7	6	2		
-
-	3	1	0		
-
-	5	4	8		
-	
-	
-
-	7	6	0		
-
-	3	1	2		
-
-	5	4	8		
-	
-	
-
-	7	0	6		
-
-	3	1	2		
-
-	5	4	8		
-	
-	
-
-	7	1	6		
-
-	3	0	2		
-
-	5	4	8		
-	
-	
-
-	7	1	6		
-
-	0	3	2		
-
-	5	4	8		
-	
-	
-
-	0	1	6		
-
-	7	3	2		
-
-	5	4	8		
-	
-	
-
-	1	0	6		
-
-	7	3	2		
-
-	5	4	8		
-	
-	
-
-	1	3	6		
-
-	7	0	2		
-
-	5	4	8		
-	
-	
-
-	1	3	6		
-
-	7	4	2		
-
-	5	0	8		
-	
-	
-
-	1	3	6		
-
-	7	4	2		
-
-	0	5	8		
-	
-	
-
-	1	3	6		
-
-	0	4	2		
-
-	7	5	8		
-	
-	
-
-	1	3	6		
-
-	4	0	2		
-
-	7	5	8		
-	
-	
-
-	1	3	6		
-
-	4	2	0		
-
-	7	5	8		
-	
-	
-
-	1	3	0		
-
-	4	2	6		
-
-	7	5	8		
-	
-	
-
-	1	0	3		
-
-	4	2	6		
-
-	7	5	8		
-	
-	
-
-	1	2	3		
-
-	4	0	6		
-
-	7	5	8		
-	
-	
-
-	1	2	3		
-
-	4	5	6		
-
-	7	0	8		
-	
-	
-
-	1	2	3		
-
-	4	5	6		
-
-	7	8	0
+	1	8	4
 */
