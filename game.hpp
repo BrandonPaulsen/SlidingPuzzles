@@ -8,6 +8,8 @@ using std::to_string;
 using std::cout;
 using std::cin;
 using std::endl;
+#include <fstream>
+using std::ofstream;
 #include <queue>
 using std::priority_queue;
 #include <unordered_set>
@@ -53,16 +55,22 @@ class game {
 		int depth = 0;
 		int heuristicValue = 0;
 		int priority = 0;
+		bool visited = false;		//new
 		matrix board = {};
 		position emptySpace = {0,0};
 		game* parent;
+		vector<game*> children;		//new
 	public:
 		friend bool operator==(const game& a, const game& b) {
 			return (a.size == b.size) && (a.board == b.board);
 		}
+		friend bool operator!=(const game& a, const game& b) {
+			return !(a==b);
+		}
 
 		game(int size);
 		game(const game& c);
+		~game(void);
 		game& operator=(const game& c);
 		/*
 				UTILITY FUNCTIONS
@@ -70,6 +78,8 @@ class game {
 		void display(void);
 		position find(int tile);
 		void enterUserState(void);
+		void graphPath(const string& fileName);
+		void graphPath(ofstream& of);
 		/*
 			GETTERS
 		*/
@@ -84,6 +94,9 @@ class game {
 		}
 		int getPriority(void) {
 			return priority;
+		}
+		bool getVisited(void) {
+			return visited;
 		}
 		matrix getBoard(void) {
 			return board;
@@ -104,6 +117,9 @@ class game {
 				}
 				return ID;
 		}
+		vector<game*> getChildren(void) {
+			return children;
+		}
 		/*
 			SETTERS
 		*/
@@ -119,6 +135,9 @@ class game {
 		void setPriority(int p) {
 			priority = p;
 		}
+		void setVisited(bool v) {
+			visited = v;
+		} 
 		void setBoard(matrix b) {
 			board = b;
 		}
@@ -128,13 +147,18 @@ class game {
 		void setParent(game* p) {
 			parent = p;
 		}
+		void setChildren(void) {
+			vector<position> moves = getValidMoves();
+			for(position move:moves) {
+				children.push_back(getChild(move));
+			}
+		}
 		/*
 			MOVEMENT FUNCTIONS	
 		*/
 		vector<position> getValidMoves(void);
 		void applyMove(position& move);
 		game* getChild(position& move);
-		vector<game*> getChildren(void);
 		void randomize(void);
 		/*
 				HEURISTIC FUNCTIONS
