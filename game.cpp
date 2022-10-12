@@ -27,6 +27,12 @@ game::game(const game& c) {
 	parent = c.parent;
 }
 
+game::~game(void) {
+	for(game* child:children) {
+		delete child;
+	}
+}
+
 game& game::operator=(const game& c) {
 	return *this;
 }
