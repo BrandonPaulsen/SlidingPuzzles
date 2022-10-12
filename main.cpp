@@ -1,30 +1,34 @@
 #include "game.hpp"
 
-game* bruteForce(game* initialState, game* goalState) {
-	game* path = new game(initialState->getSize());
-
+vector<vector<game*>> generateSearchTree(game* root) {
 	unordered_set<string> visited;
-	visited.insert(goalState->getID());
+	visited.insert(root->getID());
 
-	vector<vector<game*>> levels = {};
-	levels.push_back({goalState});
+	vector<vector<game*>> searchTree = {};
+	searchTree.push_back({root});
 
-	while(levels.back().size() != 0) {
-		vector<game*> currLevel = levels.back();
+	while(searchTree.back().size() != 0) {
+		vector<game*> currLevel = searchTree.back();
 		vector<game*> nextLevel = {};
 		for(game* parent:currLevel) {
 			parent->setChildren();
-			vector<game*> children = parent->getChildren();
-			for(game* child:children) {
+			for(game* child:parent->getChildren()) {
 				if(visited.find(child->getID()) == visited.end()) {
 					nextLevel.push_back(child);
 					visited.insert(child->getID());
 				}
 			}
 		}
-		levels.push_back(nextLevel);
+		searchTree.push_back(nextLevel);
 	}
-	levels.pop_back();
+	searchTree.pop_back();
+	return searchTree;
+}
+
+game* bruteForce(game* initialState, game* goalState) {
+	game* path = new game(initialState->getSize());
+
+	vector<vector<game*>> levels = generateSearchTree(goalState);
 
 	int depth = 0;
 	for(vector<game*> level:levels) {
@@ -68,8 +72,40 @@ game* heuristicSearch(game* initialState, game* goalState, string& heuristic) {
 			}
 		}
 	}
-	cout << "VISITED " << visited.size() << " NODES" << endl;
+	// cout << "VISITED " << visited.size() << " NODES" << endl;
 	return path;
+}
+
+vector<game*> getAllMismatch() {
+	vector<game*> mismatchingInitialStates;
+	game* root = new game(3);
+	vector<vector<game*>> searchTree = generateSearchTree(root);
+
+	for(vector<game*> level:searchTree) {
+		cout << "DEPTH: " << level.front()->getDepth() << endl;
+		for(game* state:level) {
+			game* misplacedTileInitialState = new game(3);
+			misplacedTileInitialState->setBoard(state->getBoard());
+			game* misplacedTileGoalState = new game(3);
+			misplacedTileGoalState->setBoard(root->getBoard());
+			string misplacedTileHeuristic = "misplacedTile";
+			game* misplacedTilePath = heuristicSearch(misplacedTileInitialState, misplacedTileGoalState, misplacedTileHeuristic);
+
+			game* manhattanDistanceInitialState = new game(3);
+			manhattanDistanceInitialState->setBoard(state->getBoard());
+			game* manhattanDistanceGoalState = new game(3);
+			manhattanDistanceGoalState->setBoard(root->getBoard());
+			string manhattanDistanceHeuristic = "manhattanDistance";
+			game* manhattanDistancePath = heuristicSearch(manhattanDistanceInitialState, manhattanDistanceGoalState, manhattanDistanceHeuristic);
+
+			if(manhattanDistancePath->getDepth() != misplacedTilePath->getDepth()) {
+				mismatchingInitialStates.push_back(state);
+			}
+			delete misplacedTileGoalState;
+			delete manhattanDistanceGoalState;
+		}
+	}
+	return mismatchingInitialStates;
 }
 
 void displayPath(game* path) {
@@ -120,69 +156,14 @@ int main() {
 	} else if(heuristicInt == 3) {
 		heuristic = "manhattanDistance";
 	} else if(heuristicInt == 4) {
-		bruteForce(initialState, goalState);
+		displayPath(bruteForce(initialState, goalState));
 		return 0;
 	}
 
 	game* path = heuristicSearch(initialState, goalState, heuristic);
 	displayPath(path);
 	cout << "SOLUTION DEPTH: " << path->getDepth() << endl;
-
-
-	// string heuristic = "manhattanDistance";
-
-	// game* bruteForcePath = bruteForce(initialState, goalState);
-	// cout << "BRUTE FORCE PATH DEPTH: " << bruteForcePath->getDepth() << endl;
-	// cout << "MANHATTAN DISTANCE PATH DEPTH: " << manhattanDistancePath->getDepth() << endl;
-	// while(bruteForcePath != nullptr && manhattanDistancePath != nullptr) {
-	// 	if(*bruteForcePath == *manhattanDistancePath) {
-	// 		bruteForcePath->display();
-	// 	} else {
-	// 		cout << "PATHS DIVERGE AT DEPTH " << bruteForcePath->getDepth() << endl;
-	// 		cout << "BRUTE FORCE PATH: " << endl;
-	// 		bruteForcePath->display();
-	// 		cout << "MANHATTAN DISTANCE PATH: " << endl;
-	// 		manhattanDistancePath->display();
-	// 		break;
-	// 	}
-	// 	bruteForcePath = bruteForcePath->getParent();
-	// 	manhattanDistancePath = manhattanDistancePath->getParent();
-	// }
-
 }
 
 
 //072461358
-
-/*
-STATES FOR WHICH MISPLACED TILE AND MANHATTAN DISTANCE DIVERGE:
-	0	7	2
-
-	4	6	1
-
-	3	5	8
-
-	
-
-	1	8	6
-
-	3	2	5
-
-	4	7	0
-
-
-
-	6	7	5	
-
-	1	8	3
-
-	0	2	4
-
-
-
-	0	3	7
-
-	5	2	6
-
-	1	8	4
-*/
