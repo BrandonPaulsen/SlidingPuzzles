@@ -76,10 +76,10 @@ searchResult heuristicSearch(game* initialState, game* goalState, string& heuris
 		} else {
 			currState->setChildren();
 			vector<game*> children = currState->getChildren();
+			visited.insert(currState->getID());
 			for(game* child:children) {
 				if(visited.find(child->getID()) == visited.end()) {
 					child->updatePriority(initialState, heuristic);
-					visited.insert(child->getID());
 					Q.push(child);
 				}
 			}

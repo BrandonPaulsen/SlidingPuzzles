@@ -84,40 +84,6 @@ void game::enterUserState(void) {
 	emptySpace = find(0);
 }
 
-
-//	INITIALIZE OUTPUT FILE OFSTREAM IN ORDER TO PRINT GRAPH TO FILE AND VISUALIZE
-void game::graphPath(const string& fileName) {
-	ofstream outputFile;
-	outputFile.open(fileName);
-	if(!outputFile.is_open()) {
-		cout << "ERROR OPENING OUTPUT FILE" << endl;
-		return;
-	}
-	outputFile << "digraph G {" << endl;
-	graphPath(outputFile);
-	outputFile << "}";
-	outputFile.close();
-	string imageFileName = fileName.substr(0,fileName.find("."))+".jpg";
-	string command = "dot -Tjpg " + fileName + " -o " + imageFileName;
-	system(command.c_str());
-}
-
-
-//	ACTUALLY RECURSIVELY PRINT GRAPH DATA TO FILE
-void game::graphPath(ofstream& outputFile) {
-	string color;
-	if(visited) {
-		color = "red";
-	} else {
-		color = "blue";
-	}
-	outputFile << "\"" << getID() << "\" [color = " << color << ", style = filled, label = \"" <<  getID() << "\"];" << endl;
-	for(game* child:children) {
-		child->graphPath(outputFile);
-		outputFile << "\"" << getID() << "\" -> " << "\"" << child->getID() << "\";" << endl;
-	}
-}
-
 /*
 	MOVEMENT FUNCTIONS	
 */

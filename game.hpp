@@ -55,11 +55,11 @@ class game {
 		int depth = 0;
 		int heuristicValue = 0;
 		int priority = 0;
-		bool visited = false;		//new
+		bool visited = false;
 		matrix board = {};
 		position emptySpace = {0,0};
 		game* parent;
-		vector<game*> children;		//new
+		vector<game*> children;
 	public:
 		friend bool operator==(const game& a, const game& b) {
 			return (a.size == b.size) && (a.board == b.board);
@@ -78,8 +78,6 @@ class game {
 		void display(void);
 		position find(int tile);
 		void enterUserState(void);
-		void graphPath(const string& fileName);
-		void graphPath(ofstream& of);
 		/*
 			GETTERS
 		*/
