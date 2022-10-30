@@ -1,14 +1,18 @@
 #include "game.hpp"
+#include <chrono>
+using namespace std::chrono;
 
 struct searchResult {
 	game* path;
 	int depth;
 	int visitedStates;
 	int frontierSize;
-	searchResult(int d, int v, int f, game* p) {
+	int searchTime;
+	searchResult(int d, int v, int f, int t, game* p) {
 		depth = d;
 		visitedStates = v;
 		frontierSize = f;
+		searchTime = t;
 		path = p;
 	}
 };
@@ -56,6 +60,8 @@ game* bruteForce(game* initialState, game* goalState) {
 }
 
 searchResult heuristicSearch(game* initialState, game* goalState, string& heuristic) {
+	milliseconds start = duration_cast<milliseconds>(system_clock::now().time_since_epoch());
+
 	game* path = new game(initialState->getSize());
 
 	auto compare = [](game* a, game* b) {
@@ -86,7 +92,10 @@ searchResult heuristicSearch(game* initialState, game* goalState, string& heuris
 		}
 	}
 
-	searchResult res(path->getDepth(), visited.size(), Q.size(), path);
+	milliseconds end = duration_cast<milliseconds>(system_clock::now().time_since_epoch());
+	int duration = end.count()-start.count();
+
+	searchResult res(path->getDepth(), visited.size(), Q.size(), duration, path);
 	return res;
 }
 
@@ -98,6 +107,166 @@ void displayPath(game* path) {
 	path->display();
 }
 
+void monteCarlo(int size, int simulations, string& heuristic) {
+	vector<int> numDepth = {};
+	vector<int> numVisited = {};
+	vector<int> numFrontier = {};
+	vector<int> numTime = {};
+	while(simulations > 0) {
+		game* initialState = new game(size);
+		initialState->randomize();
+		game* goalState = new game(size);
+		searchResult res = heuristicSearch(initialState, goalState, heuristic);
+		while(numDepth.size() <= res.depth) {
+			numDepth.push_back(0);
+			numVisited.push_back(0);
+			numFrontier.push_back(0);
+			numTime.push_back(0);
+		}
+		delete goalState;
+		numDepth.at(res.depth)++;
+		numVisited.at(res.depth) += res.visitedStates;
+		numFrontier.at(res.depth) += res.frontierSize;
+		numTime.at(res.depth) += res.searchTime;
+		simulations--;
+	}
+	vector<double> averageVisited = {};
+	vector<double> averageFrontier = {};
+	vector<double> averageTime = {};
+	for(int d = 0; d < numDepth.size(); d++) {
+		while(averageVisited.size() <= d) {
+			averageVisited.push_back(0);
+			averageFrontier.push_back(0);
+			averageTime.push_back(0);
+		}
+		averageVisited.at(d) = (double)numVisited.at(d)/(double)numDepth.at(d);
+		averageFrontier.at(d) = (double)numFrontier.at(d)/(double)numDepth.at(d);
+		averageTime.at(d) = (double)numTime.at(d)/(double)numDepth.at(d);
+	}
+	cout << "DEPTH:" << endl;
+	cout << "[";
+	for(int d = 0; d < numDepth.size(); d++) {
+		if(numDepth.at(d) != 0) {
+			cout << d;
+			if(d != numDepth.size()-1) {
+				cout << ", ";
+			}
+		}
+	}
+	cout << "]" << endl;
+	cout << "VISITED:" << endl;
+	cout << "[";
+	for(int d = 0; d < numDepth.size(); d++) {
+		if(numDepth.at(d) != 0) {
+			cout  << averageVisited.at(d);
+			if(d != numDepth.size()-1) {
+				cout << ", ";
+			}
+		}
+	}
+	cout << "]" << endl;
+	cout << "FRONTIER:" << endl;
+	cout << "[";
+	for(int d = 0; d < numDepth.size(); d++) {
+		if(numDepth.at(d) != 0) {
+			cout << averageFrontier.at(d);
+			if(d != numDepth.size()-1) {
+				cout << ", ";
+			}
+		}
+	}
+	cout << "]" << endl;
+	cout << "TIME:" << endl;
+	cout << "[";
+	for(int d = 0; d < numDepth.size(); d++) {
+		if(numDepth.at(d) != 0) {
+			cout << averageTime.at(d);
+			if(d != numDepth.size()-1) {
+				cout << ", ";
+			}
+		}
+	}
+	cout << "]" << endl;
+}
+
+void testCases(string& heuristic) {
+	vector<int> depth = {0,2,4,8,12,16,20,24};
+	vector<int> numVisited = {};
+	vector<int> numFrontier = {};
+	vector<int> numTime = {};
+	vector<game*> testCases = {};
+	game* test0 = new game(3);
+	testCases.push_back(test0);
+	game* test1 = new game(3);
+	test1->setBoard({{1,2,3},{4,5,6},{0,7,8}});
+	testCases.push_back(test1);
+	game* test2 = new game(3);
+	test2->setBoard({{1,2,3},{5,0,6},{4,7,8}});
+	testCases.push_back(test2);
+	game* test3 = new game(3);
+	test3->setBoard({{1,3,6},{5,0,2},{4,7,8}});
+	testCases.push_back(test3);
+	game* test4 = new game(3);
+	test4->setBoard({{1,3,6},{5,0,7},{4,8,2}});
+	testCases.push_back(test4);
+	game* test5 = new game(3);
+	test5->setBoard({{1,6,7},{5,0,3},{4,8,2}});
+	testCases.push_back(test5);
+	game* test6 = new game(3);
+	test6->setBoard({{7,1,2},{4,8,5},{6,3,0}});
+	testCases.push_back(test6);
+	game* test7 = new game(3);
+	test7->setBoard({{0,7,2},{4,6,1},{3,5,8}});
+	testCases.push_back(test7);
+	int currTest = 0;
+	for(game* test:testCases) {
+		cout << "RUNNING TEST " << currTest << endl;
+		game* solved = new game(3);
+		searchResult res = heuristicSearch(test,solved,heuristic);
+		numVisited.push_back(res.visitedStates);
+		numFrontier.push_back(res.frontierSize);
+		numTime.push_back(res.searchTime);
+		cout << "\tFINISHED TEST" << endl;
+		currTest++;
+	}
+	cout << "FINSISHED RUNNING ALL TESTS" << endl;
+	cout << "DEPTH:" << endl;
+	cout << "[";
+	for(int d:depth) {
+		cout << d;
+		if(d != depth.back()) {
+			cout << ", ";
+		}
+	}
+	cout << "]" << endl;
+	cout << "VISITED:" << endl;
+	cout << "[";
+	for(int visited:numVisited) {
+		cout << visited;
+		if(visited != numVisited.back()) {
+			cout << ", ";
+		}
+	}
+	cout << "]" << endl;
+	cout << "FRONTIER:" << endl;
+	cout << "[";
+	for(int frontier:numFrontier) {
+		cout << frontier;
+		if(frontier != numFrontier.back()) {
+			cout << ", ";
+		}
+	}
+	cout << "]" << endl;
+	cout << "TIME:" << endl;
+	cout << "[";
+	for(int t:numTime) {
+		cout << t;
+		if(t != numTime.back()) {
+			cout << ", ";
+		}
+	}
+	cout << "]"<< endl;
+}
 
 int main() {
 	srand(time(NULL));
@@ -126,8 +295,6 @@ int main() {
 	cout << "\t2: Solve with Uniform Cost Heuristic" << endl;
 	cout << "\t3: Solve with Misplaced Tile Heuristic" << endl;
 	cout << "\t4: Solve with Manhattan Tile Heuristic" << endl;
-	cout << "\t5: Compare Misplaced Tile Heuristic solution and Manhattan Distance Heuristic Solution" << endl;
-	cout << "\t6: Approximate solution statistics per depth" << endl;
 
 	int action = 0;
 	string heuristic = "";
@@ -135,95 +302,13 @@ int main() {
 
 	if(action == 1) {
 		displayPath(bruteForce(initialState, goalState));
+		return 0;
 	} else if(action == 2)  {
 		heuristic = "uniformCost";
 	} else if(action == 3) {
 		heuristic = "misplacedTile";
 	} else if(action == 4) {
 		heuristic = "manhattanDistance";
-		return 0;
-	} else if(action == 5) {
-		string manhattanDistanceHeuristic = "manhattanDistance";
-		searchResult manhattanDistanceResult = heuristicSearch(initialState, goalState, manhattanDistanceHeuristic);
-
-		string misplacedTileHeuristic = "misplacedTile";
-		searchResult misplacedTileResult = heuristicSearch(initialState, goalState, misplacedTileHeuristic);
-
-		if(manhattanDistanceResult.depth != misplacedTileResult.depth) {
-			cout << "MISPLACED TILE PATH:" << endl;
-			displayPath(misplacedTileResult.path);
-			cout << "MANHATTAN DISTANCE PATH:" << endl;
-			displayPath(manhattanDistanceResult.path);
-			cout << "MISPLACED TILE SOLUTION DEPTH AT: " << misplacedTileResult.depth << endl;
-			cout << "MISPLACED TILE VISITED STATES: " << misplacedTileResult.visitedStates << endl;
-			cout << "MISPLACED TILE FRONTIER SIZE: " << misplacedTileResult.frontierSize << endl;
-			cout << "MANHATTAN DISTANCE SOLUTION DEPTH AT: " << manhattanDistanceResult.depth << endl;
-			cout << "MANHATTAN DISTANCE VISITED STATES: " << manhattanDistanceResult.visitedStates << endl;
-			cout << "MANHATTAN DISTANCE FRONTIER SIZE: " << manhattanDistanceResult.frontierSize << endl;
-		} else {
-			cout << "SOLUTIONS AT THE SAME DEPTH (" << manhattanDistanceResult.depth << ")" << endl;
-		}
-		return 0;
-	} else if(action == 6) {
-		cout << "What heuristic would you like to use?" << endl;
-		cout << "\t1: Uniform Cost" << endl;
-		cout << "\t2: Misplaced Tile" << endl;
-		cout << "\t3: Manhattan Distance" << endl;
-		int heuristicInt = 0;
-		cin >> heuristicInt;
-
-		if(heuristicInt == 1) {
-			heuristic = "uniformCost";
-		} else if(heuristicInt == 2) {
-			heuristic = "misplacedTile";
-		} else if(heuristicInt == 3) {
-			heuristic = "manhattanDistance";
-		} else {
-			return 0;
-		}
-
-		cout << "How many randomized trials would you like to run?" << endl;
-		int trials = 0;
-		cin >> trials;
-
-		vector<int> totalVisitedStates = {};
-		vector<int> totalFrontierSize = {};
-		vector<int> depthCount = {};
-
-		for(int i = 0; i < trials; i++) {
-			cout << "RUNNING TRIAL " << i+1 << endl;
-			game* initialState = new game(size);
-			initialState->randomize();
-
-			game* goalState = new game(size);
-			goalState->setParent(nullptr);
-
-			searchResult result = heuristicSearch(initialState, goalState, heuristic);
-
-			while(result.depth >= depthCount.size()) {
-				totalVisitedStates.push_back(0);
-				totalFrontierSize.push_back(0);
-				depthCount.push_back(0);
-			}
-
-			totalVisitedStates.at(result.depth) += result.visitedStates;
-			totalFrontierSize.at(result.depth) += result.frontierSize;
-			depthCount.at(result.depth)++;
-		}
-
-		for(int depth = 0; depth < depthCount.size(); depth++) {
-			cout << "Depth " << depth << endl;
-			if(depthCount.at(depth) == 0) {
-				cout << "\tNo Solutions" << endl;
-			} else {
-				cout << "\tNumber of Solutions at Depth: " << depthCount.at(depth) << endl;
-				cout << "\tAverage Visited States: " << totalVisitedStates.at(depth) / depthCount.at(depth) << endl;
-				cout << "\tAverage Frontier Size: " << totalFrontierSize.at(depth) / depthCount.at(depth) << endl;
-			}
-		}
-
-
-		return 0;
 	}
 
 	searchResult result = heuristicSearch(initialState, goalState, heuristic);
@@ -231,7 +316,5 @@ int main() {
 	cout << "SOLUTION DEPTH: " << result.depth << endl;
 	cout << "NUMBER OF VISITED STATES: " << result.visitedStates << endl;
 	cout << "NUMBER OF FRONTIER NODES: " << result.frontierSize << endl;
+	cout << "SEARCH TIME IN MILLISECONDS: " << result.searchTime << endl;
 }
-
-
-//072461358

@@ -131,7 +131,7 @@ game* game::getChild(position& move) {
 //	RANDOMIZE BOARD BY MAKING RANDOM MOVES
 //		USEFUL FOR TESTING HEURISTIC FUNCTIONS
 void game::randomize(void) {
-	for(int r = 0; r < rand()%(100*size*size); r++) {
+	for(int r = 0; r < rand()%(10000*size*size); r++) {
 		vector<position> moves = getValidMoves();
 		applyMove(moves.at(rand()%moves.size()));
 	}
