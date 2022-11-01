@@ -2,6 +2,7 @@
 #include <chrono>
 using namespace std::chrono;
 
+//struct to hold search results and information
 struct searchResult {
 	game* path;
 	int depth;
@@ -17,6 +18,7 @@ struct searchResult {
 	}
 };
 
+//construct entire search tree with a given game pointer at its root
 vector<vector<game*>> generateSearchTree(game* root) {
 	unordered_set<string> visited;
 	visited.insert(root->getID());
@@ -24,6 +26,7 @@ vector<vector<game*>> generateSearchTree(game* root) {
 	vector<vector<game*>> searchTree = {};
 	searchTree.push_back({root});
 
+	//construct tree level by level (depth first search)
 	while(searchTree.back().size() != 0) {
 		vector<game*> currLevel = searchTree.back();
 		vector<game*> nextLevel = {};
@@ -42,12 +45,15 @@ vector<vector<game*>> generateSearchTree(game* root) {
 	return searchTree;
 }
 
+//brute force the game solution
 game* bruteForce(game* initialState, game* goalState) {
 	game* path = new game(initialState->getSize());
 
+	//generate entire search tree
 	vector<vector<game*>> levels = generateSearchTree(goalState);
 
 	int depth = 0;
+	//look for goal node and return pointer to path to traverse upwards
 	for(vector<game*> level:levels) {
 		for(game* state:level) {
 			if(*state == *initialState) {
@@ -59,31 +65,50 @@ game* bruteForce(game* initialState, game* goalState) {
 	return path;
 }
 
+//heuristic search algorithm
+//note: I have reversed the role of the initial state and goal state to allow bottom up path traversal and avoid keeping track of the path at each node
 searchResult heuristicSearch(game* initialState, game* goalState, string& heuristic) {
+	//initialize start time
 	milliseconds start = duration_cast<milliseconds>(system_clock::now().time_since_epoch());
 
+	//construct new game pointer starting at start state
 	game* path = new game(initialState->getSize());
 
+	//comparison function
 	auto compare = [](game* a, game* b) {
 		return a->getPriority() > b->getPriority();
 	};
 
+	//prepare queue and visited set
+	goalState->updatePriority(initialState, heuristic);
 	unordered_set<string> visited;
 	visited.insert(goalState->getID());
 	priority_queue<game*, vector<game*>, decltype(compare)> Q(compare);
 	Q.push(goalState);
 
+	int maxFrontier = Q.size();
+
+	//loop while there are more nodes to look at
 	while(!Q.empty()) {
+		//remove top node
 		game* currState = Q.top();
 		Q.pop();
+		visited.insert(currState->getID());
+		if(maxFrontier < Q.size()) {
+			maxFrontier = Q.size();
+		}
+		cout << "Best state to expand with depth (g(n)) " << currState->getDepth() << " and heuristic (h(n)) " << currState->getHeuristicValue() << endl;
+		currState->display();
+		//if we have found the initial state, return it to construct path bottom up
 		if(*currState == *initialState) {
 			path = currState;
 			break;
 		} else {
+			//get children
 			currState->setChildren();
 			vector<game*> children = currState->getChildren();
-			visited.insert(currState->getID());
 			for(game* child:children) {
+				//if child is not vistied yet, add it to the queue
 				if(visited.find(child->getID()) == visited.end()) {
 					child->updatePriority(initialState, heuristic);
 					Q.push(child);
@@ -95,10 +120,12 @@ searchResult heuristicSearch(game* initialState, game* goalState, string& heuris
 	milliseconds end = duration_cast<milliseconds>(system_clock::now().time_since_epoch());
 	int duration = end.count()-start.count();
 
-	searchResult res(path->getDepth(), visited.size(), Q.size(), duration, path);
+	//return path and associated metadata
+	searchResult res(path->getDepth(), visited.size(), maxFrontier, duration, path);
 	return res;
 }
 
+//display path
 void displayPath(game* path) {
 	while(path->getParent() != nullptr) {
 		path->display();
@@ -107,29 +134,42 @@ void displayPath(game* path) {
 	path->display();
 }
 
+//monte carlo simulation
 void monteCarlo(int size, int simulations, string& heuristic) {
+	//keep track of depth, num visited, max frontier, and search time
 	vector<int> numDepth = {};
 	vector<int> numVisited = {};
 	vector<int> numFrontier = {};
 	vector<int> numTime = {};
+	//iterate over simulations
 	while(simulations > 0) {
+		//status indicator
+		if(simulations%1000 == 0) {
+			int completedSimulations = 100000-simulations;
+			cout << "Completed " << completedSimulations << " simulations" << endl;
+		}
+		//execute search
 		game* initialState = new game(size);
 		initialState->randomize();
 		game* goalState = new game(size);
 		searchResult res = heuristicSearch(initialState, goalState, heuristic);
+		//expand vectors if need be
 		while(numDepth.size() <= res.depth) {
 			numDepth.push_back(0);
 			numVisited.push_back(0);
 			numFrontier.push_back(0);
 			numTime.push_back(0);
 		}
+		//keep memory under control (pointers, ugh)
 		delete goalState;
+		//add result data to other data
 		numDepth.at(res.depth)++;
 		numVisited.at(res.depth) += res.visitedStates;
 		numFrontier.at(res.depth) += res.frontierSize;
 		numTime.at(res.depth) += res.searchTime;
 		simulations--;
 	}
+	//take averages
 	vector<double> averageVisited = {};
 	vector<double> averageFrontier = {};
 	vector<double> averageTime = {};
@@ -143,6 +183,7 @@ void monteCarlo(int size, int simulations, string& heuristic) {
 		averageFrontier.at(d) = (double)numFrontier.at(d)/(double)numDepth.at(d);
 		averageTime.at(d) = (double)numTime.at(d)/(double)numDepth.at(d);
 	}
+	//print data so that it can be graphed in python (I know I could use a sys call  but I don't want to)
 	cout << "DEPTH:" << endl;
 	cout << "[";
 	for(int d = 0; d < numDepth.size(); d++) {
@@ -189,7 +230,9 @@ void monteCarlo(int size, int simulations, string& heuristic) {
 	cout << "]" << endl;
 }
 
+//run all test cases from project assignment to plot them
 void testCases(string& heuristic) {
+	//initialize all test cases
 	vector<int> depth = {0,2,4,8,12,16,20,24};
 	vector<int> numVisited = {};
 	vector<int> numFrontier = {};
@@ -219,6 +262,7 @@ void testCases(string& heuristic) {
 	test7->setBoard({{0,7,2},{4,6,1},{3,5,8}});
 	testCases.push_back(test7);
 	int currTest = 0;
+	//run all test cases
 	for(game* test:testCases) {
 		cout << "RUNNING TEST " << currTest << endl;
 		game* solved = new game(3);
@@ -230,6 +274,7 @@ void testCases(string& heuristic) {
 		currTest++;
 	}
 	cout << "FINSISHED RUNNING ALL TESTS" << endl;
+	//print out all data (I know I could write a function since this code is also used in the monte carlo simulation, but I don't really feel like it)
 	cout << "DEPTH:" << endl;
 	cout << "[";
 	for(int d:depth) {
@@ -312,6 +357,7 @@ int main() {
 	}
 
 	searchResult result = heuristicSearch(initialState, goalState, heuristic);
+	cout << "SOLUTION PATH:" << endl;
 	displayPath(result.path);
 	cout << "SOLUTION DEPTH: " << result.depth << endl;
 	cout << "NUMBER OF VISITED STATES: " << result.visitedStates << endl;

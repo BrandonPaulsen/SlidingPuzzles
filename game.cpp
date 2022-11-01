@@ -51,8 +51,6 @@ void game::display(void) {
 		cout << endl << endl;
 	}
 	cout << endl << endl;
-	cout << "PRIORITY: " << priority << endl;
-	cout << endl << endl;
 }
 
 //	FIND A TILE IN A GAME STATE, RETURN POSITION

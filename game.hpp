@@ -22,8 +22,10 @@ using std::unordered_set;
 #ifndef GAME_HPP
 #define GAME_HPP
 
+//vectors of vectors are matrices, and are easier to work with than single vectors
 #define matrix vector<vector<int>>
 
+//struct to keep track of poisitions and directions
 struct position {
 	int row = 0;
 	int col = 0;
@@ -44,13 +46,16 @@ struct position {
 	}
 };
 
+//directions
 const position UP = {-1,0};
 const position RIGHT = {0,1};
 const position DOWN = {1,0};
 const position LEFT = {0,-1};
 
+//game class
 class game {
 	private:
+		//keep track of data important to the game class
 		int size = 0;
 		int depth = 0;
 		int heuristicValue = 0;
@@ -61,6 +66,7 @@ class game {
 		game* parent;
 		vector<game*> children;
 	public:
+		//comparators to tell when we have found the goal state
 		friend bool operator==(const game& a, const game& b) {
 			return (a.size == b.size) && (a.board == b.board);
 		}
@@ -68,6 +74,7 @@ class game {
 			return !(a==b);
 		}
 
+		//constructors and destructors
 		game(int size);
 		game(const game& c);
 		~game(void);
@@ -105,6 +112,7 @@ class game {
 		game* getParent(void) {
 			return parent;
 		}
+		//use id because pointers cannot be inserted into unordered_set
 		string getID(void) {
 				string ID = "";
 				for(int row = 0; row < size; row++) {
